@@ -1,10 +1,28 @@
 import { Component, OnInit, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { resolveApiBaseUrl } from './runtime-config';
+import { environment } from '../environments/environment';
 
 type ApiServerStatus = 'online' | 'offline' | 'misconfigured';
 type DatabaseStatus = 'connected' | 'unconfigured' | 'disconnected' | 'unknown';
+
+function normalizeApiUrl(value: string | null | undefined): string | null {
+  const trimmed = String(value ?? '')
+    .trim()
+    .replace(/\/+$/, '');
+
+  return trimmed ? trimmed : null;
+}
+
+function resolveApiBaseUrl(): string | null {
+  const runtimeUrl = normalizeApiUrl(
+    typeof window !== 'undefined'
+      ? (window as Window & { __APP_CONFIG__?: { apiUrl?: string | null } }).__APP_CONFIG__?.apiUrl
+      : null
+  );
+
+  return runtimeUrl || normalizeApiUrl(environment.apiUrl);
+}
 
 @Component({
   selector: 'app-root',
